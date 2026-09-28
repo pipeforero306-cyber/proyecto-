@@ -28,3 +28,16 @@ site:
           draft: true
           content:
             directory: ./dns
+    - type: section
+      key: section-3
+      title: installDNS
+      path: installdns
+      children:
+        - type: space
+          key: space-3
+          title: installDNS
+          path: installdns
+          default: true
+          draft: true
+          content:
+            directory: ./installdns
