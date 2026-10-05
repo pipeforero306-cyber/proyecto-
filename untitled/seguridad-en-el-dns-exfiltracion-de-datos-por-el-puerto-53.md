@@ -1,4 +1,4 @@
-# Seguridad en el DNS
+# Seguridad en el DNS: exfiltración de datos por el puerto 53
 
 > **Módulo:** 037 Seguridad en servicios · **Ciclo:** ASIX · **Alumno:** Daniel Felipe Valero Forero
 
@@ -35,7 +35,7 @@ Algo importante: esto **no** está hecho en localhost (127.0.0.1). La práctica 
 
 En la máquina Debian compruebo sus interfaces con `ip a`. Se ve la interfaz `ens33` con la 192.168.111.53, que es justo la IP que después recibe la petición en Wireshark.
 
-> 📸 **Captura 1** — arrastra aquí `01-ips-servidor.png` (salida de `ip a` en Debian)
+![Salida de ip a en el servidor Debian](https://raw.githubusercontent.com/pipeforero306-cyber/proyecto-/main/untitled/01-ips-servidor.png)
 
 ## 4. Desarrollo paso a paso
 
@@ -79,7 +79,7 @@ python dns_client_1_peticion.py
 
 El cliente lanza una consulta de tipo `A` con la carga oculta en el subdominio: `6461746f73206f63756c746f73.secreto.com`.
 
-> 📸 **Captura 2** — arrastra aquí `03-cliente-windows.png` (cliente en PowerShell)
+![Ejecución del cliente en Windows (PowerShell)](https://raw.githubusercontent.com/pipeforero306-cyber/proyecto-/main/untitled/03-cliente-windows.png)
 
 Esa ristra de hex no es un dominio real, es el mensaje disfrazado. Si lo vamos descodificando de dos en dos:
 
@@ -94,7 +94,7 @@ O sea, "datos ocultos".
 
 En cuanto llega la petición, la Debian la procesa: recibe el paquete, aísla el subdominio, lo convierte de hexadecimal a texto y recupera el mensaje. La línea clave es `Mensaje oculto recibido: datos ocultos`.
 
-> 📸 **Captura 3** — arrastra aquí `02-servidor-resultado.png` (Debian mostrando "datos ocultos")
+![Servidor Debian descodificando el mensaje oculto](https://raw.githubusercontent.com/pipeforero306-cyber/proyecto-/main/untitled/02-servidor-resultado.png)
 
 La exfiltración ha funcionado. Fíjate además en que el `id` de la petición coincide con el que muestra el cliente, así que es la misma conversación.
 
@@ -112,17 +112,17 @@ Se ven las dos tramas que forman el intercambio: la petición saliendo de 192.16
 
 Es una query de tipo `A` normal a ojos de la red. Lo interesante está en el nombre consultado, el subdominio con los datos en hexadecimal.
 
-> 📸 **Captura 4** — arrastra aquí `04-wireshark-peticion.png` (detalle de la petición)
+![Detalle de la petición DNS en Wireshark](https://raw.githubusercontent.com/pipeforero306-cyber/proyecto-/main/untitled/04-wireshark-peticion.png)
 
 Incluso en el volcado en hexadecimal del paquete se puede señalar la cadena `6461746f73...` viajando tal cual por el cable.
 
-> 📸 **Captura 5** — arrastra aquí `05-wireshark-peticion-hex.png` (datos ocultos en el hex)
+![Datos ocultos en el volcado hex de la petición](https://raw.githubusercontent.com/pipeforero306-cyber/proyecto-/main/untitled/05-wireshark-peticion-hex.png)
 
 ### La respuesta
 
 La segunda trama es la respuesta del servidor, que devuelve un registro `A` con la IP `4.3.2.1`. El campo **Request In** apunta a la petición, confirmando que las dos van juntas.
 
-> 📸 **Captura 6** — arrastra aquí `06-wireshark-respuesta.png` (detalle de la respuesta, trama 36147)
+![Detalle de la respuesta DNS en Wireshark (trama 36147)](https://raw.githubusercontent.com/pipeforero306-cyber/proyecto-/main/untitled/06-wireshark-respuesta.png)
 
 ## 6. Desenlace y conclusiones
 
